@@ -12,7 +12,7 @@ class API {
     }
 
 
-    loadRouterGroups() {
+    loadRouteGroups() {
         this.routeGroups.push(new rootApi());
         this.routeGroups.push(new authApi());
 
@@ -24,11 +24,11 @@ class API {
     }
 
     registerGroups() {
-        this.loadRouterGroups();
+        this.loadRouteGroups();
         this.routeGroups.forEach((rg) => {
-            console.log(rg.getRouterGroup());
+            console.log('Route group: ' + rg.getRouterGroup());
             this.app.use('/api' + rg.getRouterGroup(), this.setContentType, rg.getRouter());
-        })
+        });
     }
 
 }

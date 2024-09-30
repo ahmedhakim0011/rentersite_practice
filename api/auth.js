@@ -24,7 +24,7 @@ class AuthAPI {
         return this.router;
     }
     getRouterGroup() {
-        return 'auth';
+        return '/auth';
     }
 }
 

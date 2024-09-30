@@ -27,12 +27,12 @@ const userSchema = new Schema({
         ref: 'Media',
         default: null
     },
-    background_image: {
+    backgroundImage: {
         type: Schema.Types.ObjectId,
         ref: 'Media',
         default: null
     },
-    profile_image: {
+    profileImage: {
         type: Schema.Types.ObjectId,
         ref: 'Media',
         default: null
@@ -85,7 +85,7 @@ const userSchema = new Schema({
 
 }, { timestamps: true });
 
-const UserModel = model('user', userSchema);
+const UserModel = model('users', userSchema);
 
 // create new user
 exports.createUser = (obj) => UserModel.create(obj);

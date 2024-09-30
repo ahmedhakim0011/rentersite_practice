@@ -1,10 +1,12 @@
 const { createUser, findUser } = require('../models/user');
 const { STATUS_CODE } = require('../utils/constants')
 const { generateRandomOTP, parseBody, generateResponse } = require('../utils/index');
-const { registerUserValidation } = require('../validation/userValidation');
+const { registerUserValidation } = require('../validation/userValidation/userValidation');
 const { addOTP, deleteOTP } = require('../models/otp');
 const { sendEmail } = require("../utils/mailer");
 const { hash } = require("bcrypt");
+const { MediaModel } = require("../models/media");
+
 
 exports.register = async (req, res, next) => {
     const body = parseBody(req.body);
@@ -20,6 +22,8 @@ exports.register = async (req, res, next) => {
     try {
         // checking if given email is already registered in platform 
         const userExist = await findUser({ email: body.email });
+   
+
         if (userExist) {
             return next({
                 data: {
@@ -51,7 +55,7 @@ exports.register = async (req, res, next) => {
             })
         }
         // send email
-        await sendEmail(body.email, "OTP", `your OTP is ${otp.otp}`);
+        await sendEmail(body.email, "OTP", `your OTP is ${otpObject.otp}`);
 
         generateResponse(
             { user, otp: otpObject.otp, },
@@ -59,7 +63,7 @@ exports.register = async (req, res, next) => {
             res)
 
 
-    } catch (e) {
+    } catch (error) {
         next(new Error(error.message));
-    }
+      }
 }
