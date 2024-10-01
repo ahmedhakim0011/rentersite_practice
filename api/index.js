@@ -1,6 +1,7 @@
 const { Router } = require('express');
 const rootApi = require('./root');
 const authApi = require('./auth');
+const OTPApi = require('./otp');
 
 
 
@@ -15,7 +16,7 @@ class API {
     loadRouteGroups() {
         this.routeGroups.push(new rootApi());
         this.routeGroups.push(new authApi());
-
+        this.routeGroups.push(new OTPApi());
     }
 
     setContentType(req, res, next) {
