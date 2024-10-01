@@ -10,6 +10,8 @@ const userSchema = new Schema({
         required: true,
         lowercase: true,
     },
+    fullName: { type: String, default: null },
+
     password: {
         type: String,
         required: true,
@@ -95,3 +97,19 @@ exports.createUser = (obj) => UserModel.create(obj);
 exports.findUser = (query) => UserModel.findOne(query).populate('profileImage ssn_image backgroundImage');
 
 
+// update user by id 
+
+
+exports.updateUserById = (userId, obj) => UserModel.updateUserById(userId, obj, { new: true })
+
+
+exports.generateToken = (user)=>{
+    const token = sign ({
+        id: user._id,
+        email : user_email,
+        fullName : user.fullName,
+        role : user.role
+    }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRATION }
+
+)
+}
