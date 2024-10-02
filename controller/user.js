@@ -1,7 +1,7 @@
 const { createUser, findUser, updateUserById, generateToken } = require('../models/user');
 const { STATUS_CODE } = require('../utils/constants')
 const { generateRandomOTP, parseBody, generateResponse } = require('../utils/index');
-const { registerUserValidation, loginUserValidation } = require('../validation/userValidation/userValidation');
+const { registerUserValidation, loginUserValidation, updateProfileValidation } = require('../validation/userValidation/userValidation');
 const { addOTP, deleteOTP } = require('../models/otp');
 const { sendEmail } = require("../utils/mailer");
 const { hash, compare } = require("bcrypt");
@@ -143,3 +143,116 @@ exports.login = async (req, res, next) => {
 
 
 }
+
+
+exports.updateProfile = async (req, res, next) => {
+    const body = parseBody(req.body);
+
+    const {
+        full_name,
+        phone_number,
+        location,
+        facebook,
+        instagram,
+        userId,
+        longitude,
+        latitude,
+        bio, } = body;
+
+
+    const { error } = updateProfileValidation.validate(body);
+    if (error)
+        return next({
+            status: false,
+            statusCode: STATUS_CODE.UNPROCESSABLE_ENTITY,
+            message: error.details[0].message
+
+        });
+    // Check if there are any fields to update
+    if (!Object.keys(body).length)
+        return next({
+            status: false,
+            statusCode: STATUS_CODE.BAD_REQUEST,
+            message: "Invalid Data"
+        });
+    console.log("this is role", req.user.role);
+    //    validate the request body
+    if (req.body.role == owner) {
+        try {
+            // Update other fields from req body 
+            let updateField = {};
+            updateField.fullName = full_name;
+            updateField.phone_number = phone_number;
+            updateField.facebook = facebook;
+            updateField.instagram = instagram;
+            updateField.address = location;
+            updateField.bio = bio;
+            // Check if longitude and latitude are provided
+            if (longitude && latitude) {
+                // Convert longitude and latitude to numbers
+                let lng = parseFloat(longitude);
+                let lat = parseFloat(latitude);
+                // Set location field as a geospatial point
+                updateField.coordinates = {
+                    type: "Point",
+                    coordinates: [lng, lat],
+
+                };
+                // If location is provided as a string, set it directly
+
+            }
+            if (!req.files) {
+                return next({
+                    status: false,
+                    statusCode: STATUS_CODE.UNPROCESSABLE_ENTITY,
+                    message: "no file attached",
+                });
+            }
+            if (req.files) {
+                console.log("this is files", req.files);
+            }
+
+
+            if (req.files && req.files.profile_image) {
+                console.log("we are inside profile image");
+                const profileImageFile = req.files.profileImage[0];
+                const profileImage = new MediaModel({
+                    file: profileImageFile.path,
+                    fileType: "Image",
+                    userId: userId
+                });
+                const saveProfileImage = await profileImage.save();
+                console.log("we are inside profile image", savedProfileImage);
+                updateField.profileImage = saveProfileImage._id;
+            }
+            if (req.files && req.files.ssn_image) {
+                console.log("we are inside ssn_image");
+
+                const ssn_image = [];
+                for (const ssn_Image of req.files.ssn_image) {
+
+                    const ssnImage = new MediaModel({
+                        file: ssn_Image.path,
+                        fileType: "Image",
+                        userId: userId
+                    });
+                    // const saveProfileImage = await profileImage.save();
+                    await ssnImage.save();
+                    ssn_image.push(ssnImage._id)
+
+                }
+                updateField.ssn_image = ssn_image;
+
+
+
+
+
+            }
+
+
+        } catch (e) {
+            next(new Error(error.message));
+        }
+    }
+
+} 
