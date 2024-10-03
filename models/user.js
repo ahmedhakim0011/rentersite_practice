@@ -2,6 +2,8 @@
 
 const { Schema, model } = require('mongoose');
 const { ROLES } = require('../utils/constants');
+const { sign } = require('jsonwebtoken');
+
 
 const userSchema = new Schema({
     email: {
@@ -100,16 +102,17 @@ exports.findUser = (query) => UserModel.findOne(query).populate('profileImage ss
 // update user by id 
 
 
-exports.updateUserById = (userId, obj) => UserModel.updateUserById(userId, obj, { new: true })
+exports.updateUserById = (userId, obj) => UserModel.findByIdAndUpdate(userId, obj, { new: true })
 
 
-exports.generateToken = (user)=>{
-    const token = sign ({
+exports.generateToken = (user) => {
+    const token = sign({
         id: user._id,
-        email : user_email,
-        fullName : user.fullName,
-        role : user.role
+        email: user.email,
+        fullName: user.fullName,
+        role: user.role
     }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRATION }
 
-)
+    )
+    return token;
 }

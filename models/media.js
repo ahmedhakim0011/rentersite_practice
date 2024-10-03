@@ -29,3 +29,4 @@ exports.findMediaById = (query) => MediaModel.findById(query).lean();
 
 // Update Media by ID
 exports.updateMediaById = (mediaId, obj) => MediaModel.findByIdAndUpdate(mediaId, obj, { new: true });
+module.exports = { MediaModel}
