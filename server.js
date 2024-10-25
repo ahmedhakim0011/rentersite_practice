@@ -1,6 +1,6 @@
 const express = require('express');
 const http = require('http');
-
+const {io} = require("./socket");
 const API = require('./api');
 const dbConnect = require('./config/db_config');
 const { notFound, errorHandler } = require("./middlewears/errorHandling");
@@ -10,6 +10,7 @@ const PORT = process.env.PORT;
 const app = express();
 
 const server = http.createServer(app);
+io(server);
 new dbConnect();
 
 app.use(express.json());

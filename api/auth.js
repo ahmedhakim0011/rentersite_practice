@@ -16,7 +16,7 @@ class AuthAPI {
         const router = this.router;
         router.post('/register', upload('users').single('image'), register);
         router.post('/login', upload('users').single('image'), login);
-        // router.post('/verifyOTP', upload('users').single('image'), register);
+        // router.post('/verifyToken', upload().none(), verifyToken);
 
     }
 

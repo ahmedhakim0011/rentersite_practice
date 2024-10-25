@@ -68,3 +68,19 @@ exports.updateProfileValidation = Joi.object({
     profile_image: Joi.string().allow('', null),
     ssn_image: Joi.string().allow('', null)
 });
+
+exports.addPropertyValidation = Joi.object({
+    title: Joi.string().allow(null),
+    price: Joi.string().allow(null),
+    description: Joi.string().allow(null),
+    Bedrooms: Joi.string().allow(null),
+    Bathrooms: Joi.string().allow(null),
+    size: Joi.string().allow(null),
+    parking: Joi.string().allow(null),
+    farnished: Joi.string().allow(null),
+    longitude: Joi.number().allow(null),
+    latitude: Joi.number().allow(null),
+    city: Joi.string().allow(null),
+    address: Joi.string().allow(null),
+    property_type: Joi.string().allow(null),
+});

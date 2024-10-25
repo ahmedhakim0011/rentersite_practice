@@ -19,18 +19,21 @@ module.exports = (roles) => {
                 return next(new Error("Invalid Token"))
             else {
                 const userObj = await findUser({ _id: decode.id });
-                console.log(`user : ${userObj}`);
+
                 if (!userObj) return next(new Error("user not found"));
                 if (!userObj.isActive) return next({
                     statusCode: STATUS_CODE.FORBIDDEN,
                     message: 'Your account is deactivated, please contact admin',
                 });
                 req.user = decode;
-                if (!roles.includes(req?.user.role)) return next({
-                    data: { status: false },
-                    statusCode: STATUS_CODE.UNAUTHORIZED,
-                    message: 'Unauthorized access!'
-                });
+                if (!roles.includes(req?.user?.role))
+
+
+                    return next({
+                        data: { status: false },
+                        statusCode: STATUS_CODE.UNAUTHORIZED,
+                        message: 'Unauthorized access!'
+                    });
                 next();
             }
 

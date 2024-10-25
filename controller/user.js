@@ -5,7 +5,7 @@ const { registerUserValidation, loginUserValidation, updateProfileValidation } =
 const { addOTP, deleteOTP } = require('../models/otp');
 const { sendEmail } = require("../utils/mailer");
 const { hash, compare } = require("bcrypt");
-const { MediaModel } = require("../models/media");
+const { createMedia } = require("../models/media");
 
 
 exports.register = async (req, res, next) => {
@@ -109,7 +109,7 @@ exports.login = async (req, res, next) => {
                 statusCode: STATUS_CODE.BAD_REQUEST,
                 message: "Please verify your account to login",
 
-                data: { is_verified: false, }
+                data: { isVerified: false, }
 
             });
 
@@ -128,7 +128,8 @@ exports.login = async (req, res, next) => {
             $set: { device_token: device_token }
         });
 
-        let User = findUser({ _id: user._id });
+        let User = await findUser({ _id: user._id });
+
         const token = generateToken(user);
 
         generateResponse(
@@ -147,6 +148,8 @@ exports.login = async (req, res, next) => {
 
 exports.updateProfile = async (req, res, next) => {
     const body = parseBody(req.body);
+    const userId = req.user.id;
+
 
     const {
         full_name,
@@ -154,7 +157,6 @@ exports.updateProfile = async (req, res, next) => {
         location,
         facebook,
         instagram,
-        userId,
         longitude,
         latitude,
         bio, } = body;
@@ -169,12 +171,12 @@ exports.updateProfile = async (req, res, next) => {
 
         });
     // Check if there are any fields to update
-    if (!Object.keys(body).length)
-        return next({
-            status: false,
-            statusCode: STATUS_CODE.BAD_REQUEST,
-            message: "Invalid Data"
-        });
+    // if (!Object.keys(body).length)
+    //     return next({
+    //         status: false,
+    //         statusCode: STATUS_CODE.BAD_REQUEST,
+    //         message: "Invalid Data"
+    //     });
     console.log("this is role", req.user.role);
     //    validate the request body
     if (req.user.role == "owner") {
@@ -215,8 +217,8 @@ exports.updateProfile = async (req, res, next) => {
 
             if (req.files && req.files.profile_image) {
                 console.log("we are inside profile image");
-                const profileImageFile = req.files.profileImage[0];
-                const profileImage = new MediaModel({
+                const profileImageFile = req.files.profile_image[0];
+                const profileImage = await createMedia({
                     file: profileImageFile.path,
                     fileType: "Image",
                     userId: userId
@@ -231,7 +233,7 @@ exports.updateProfile = async (req, res, next) => {
                 const ssnImageList = [];
                 for (const ssn_Image of req.files.ssn_image) {
 
-                    const ssnImage = new MediaModel({
+                    const ssnImage = await createMedia({
                         file: ssn_Image.path,
                         fileType: "Image",
                         userId: userId
@@ -248,7 +250,7 @@ exports.updateProfile = async (req, res, next) => {
             if (req.files && req.files.backgroundImage) {
                 console.log("we are inside background file");
                 const backgoundImageFile = req.files.backgroundImage[0];
-                const background_Image = MediaModel({
+                const background_Image = await createMedia({
                     file: backgoundImageFile.path,
                     fileType: "Image",
                     userId: userId
@@ -258,6 +260,7 @@ exports.updateProfile = async (req, res, next) => {
             }
 
             updateField.is_completed = true;
+
 
             let User = await updateUserById(userId, {
                 $set: updateField,
@@ -270,108 +273,141 @@ exports.updateProfile = async (req, res, next) => {
 
 
         } catch (e) {
-            next(new Error(error.message));
+            next(new Error(e.message));
         }
-    }else {
+    } else {
         try {
             let updateFields = {};
-      
+
             // Upload profile image if provided
-      
+
             // Update other fields from the request body
             updateFields.fullName = full_name;
             updateFields.phone_number = phone_number;
             updateFields.facebook = facebook;
             updateFields.instagram = instagram;
             updateFields.bio = bio;
-      
+
             updateFields.address = location;
-      
+
             // Check if longitude and latitude are provided
             if (longitude && latitude) {
-              // Convert longitude and latitude to numbers
-              let long = parseFloat(longitude);
-              let lat = parseFloat(latitude);
-              // Set location field as a geospatial point
-              updateFields.coordinates = {
-                type: "Point",
-                coordinates: [long, lat],
-              };
-              // If location is provided as a string, set it directly
+                // Convert longitude and latitude to numbers
+                let long = parseFloat(longitude);
+                let lat = parseFloat(latitude);
+                // Set location field as a geospatial point
+                updateFields.coordinates = {
+                    type: "Point",
+                    coordinates: [long, lat],
+                };
+                // If location is provided as a string, set it directly
             }
             if (!req.files) {
-              return next({
-                status: false,
-                statusCode: STATUS_CODE.UNPROCESSABLE_ENTITY,
-                message: "no file attached",
-              });
+                return next({
+                    status: false,
+                    statusCode: STATUS_CODE.UNPROCESSABLE_ENTITY,
+                    message: "no file attached",
+                });
             }
             if (req.files) {
-              console.log("this is files", req.files);
+                console.log("this is files", req.files);
             }
-      
+
             if (req.files && req.files.profile_image) {
-              console.log("we are inside profile image");
-              const profileImageFile = req.files.profile_image[0];
-              const profileImage = new MediaModel({
-                file: profileImageFile.path,
-                fileType: "Image", // Assuming award images are always images
-                userId: userId,
-              });
-              const savedProfileImage = await profileImage.save();
-              console.log("we are inside profile image", savedProfileImage);
-      
-              updateFields.profileImage = savedProfileImage._id;
+                console.log("we are inside profile image");
+                const profileImageFile = req.files.profile_image[0];
+                const profileImage = await createMedia({
+                    file: profileImageFile.path,
+                    fileType: "Image", // Assuming award images are always images
+                    userId: userId,
+                });
+                const savedProfileImage = await profileImage.save();
+                console.log("we are inside profile image", savedProfileImage);
+
+                updateFields.profileImage = savedProfileImage._id;
             }
-      
+
             if (req.files && req.files.ssn_image) {
-              var ssnnimage = []
-              for (const ssn_image of req.files.ssn_image) {
-                const ssnImage = new MediaModel({
-                  file: ssn_image.path,
-                  fileType: "Image", // Assuming award images are always images
-                  userId: userId,
-                });          
-                const saveSSNImage = await ssnImage.save();
-                ssnnimage.push(saveSSNImage._id)
-              }
-              updateFields.ssn_image = ssnnimage;
+                var ssnnimage = []
+                for (const ssn_image of req.files.ssn_image) {
+                    const ssnImage = await createMedia({
+                        file: ssn_image.path,
+                        fileType: "Image", // Assuming award images are always images
+                        userId: userId,
+                    });
+                    const saveSSNImage = await ssnImage.save();
+                    ssnnimage.push(saveSSNImage._id)
+                }
+                updateFields.ssn_image = ssnnimage;
             }
-      
+
             if (req.files && req.files.backgroundImage) {
-              console.log("we are inside profile image");
-      
-              const backgroundImage = req.files.backgroundImage[0];
-              const background_Image = new MediaModel({
-                file: backgroundImage.path,
-                fileType: "Image", // Assuming award images are always images
-                userId: userId,
-              });
-              const savedBackgroundImage = await background_Image.save();
-              console.log("we are inside profile image", savedBackgroundImage);
-      
-              updateFields.backgroundImage = savedBackgroundImage._id;
+                console.log("we are inside profile image");
+
+                const backgroundImage = req.files.backgroundImage[0];
+                const background_Image = await createMedia({
+                    file: backgroundImage.path,
+                    fileType: "Image", // Assuming award images are always images
+                    userId: userId,
+                });
+                const savedBackgroundImage = await background_Image.save();
+                console.log("we are inside profile image", savedBackgroundImage);
+
+                updateFields.backgroundImage = savedBackgroundImage._id;
             }
-      
+
             updateFields.is_completed = true;
             // Update the user profile
             // Update the user profile
-      
+
             let User = await updateUserById(req.user.id, {
-              $set: updateFields,
+                $set: updateFields,
             }).populate("ssn_image profileImage backgroundImage");
-      
+
             const token = generateToken(User);
-           // req.session
-      
+            // req.session
+
             generateResponse(
-              { User,  token },
-              "Profile updated successfully",
-              res
+                { User, token },
+                "Profile updated successfully",
+                res
             );
-          } catch (error) {
+        } catch (error) {
             next(new Error(error.message));
-          }
+        }
     }
 
-} 
+}
+
+
+
+
+
+exports.getHomeScreenPropertiesForTenant = async () => {
+    try {
+
+        const { status } = req.body;
+
+        const responcseData = { propertyListFirst: [], propertyListSecond: [] };
+        let query;
+        if (status === "nearMe" && long && lat) {
+            query = {
+                coordinates: {
+                    $geoWithin: {
+                        $centerSphere: [[long, lat], 1 / 6378.1],
+                    },
+                }
+            };
+        }
+
+
+
+
+        const fetchProperties = async (query = {}) => {
+const properties = await getPropertyFromTenant(query).sort({createdAt : -1});
+
+        }
+    } catch (e) {
+        next(e.message)
+    }
+}

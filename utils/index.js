@@ -19,7 +19,6 @@ exports.generateRandomOTP = () => {
 
 exports.parseBody = (body) => {
     let object;
-    console.log(object)
     if (typeof body === "object") object = body;
     else object = JSON.parse(body);
     return object;

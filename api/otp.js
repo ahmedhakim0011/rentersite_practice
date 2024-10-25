@@ -1,5 +1,5 @@
 const { Router } = require('express');
-const {generateOTP} = require("../controller/otp");
+const {generateOTP, verifyOTP} = require("../controller/otp");
 const {upload} = require("../utils/index")
 
 
@@ -16,7 +16,7 @@ class OTPApi {
         router.use(upload().none());
 
         router.post('/generateOTP', generateOTP);
-        // router.post('/verify', verifyOTP);
+        router.post('/verify', verifyOTP);
     }
 
 

@@ -22,11 +22,10 @@ const mediaSchema = new Schema({
 const MediaModel = model("Media", mediaSchema);
 
 // Create Media
-exports.createMedia = (obj) => MediaModel.create(obj);
+exports. createMedia = (obj) => MediaModel.create(obj);
 
 // Find Media by ID
 exports.findMediaById = (query) => MediaModel.findById(query).lean();
 
 // Update Media by ID
 exports.updateMediaById = (mediaId, obj) => MediaModel.findByIdAndUpdate(mediaId, obj, { new: true });
-module.exports = { MediaModel}

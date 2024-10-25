@@ -15,6 +15,13 @@ const OTPSchema = new Schema({
 
 const OTPModel = model('OTP', OTPSchema);
 
+
+// opt expiration 
+OTPSchema.methods.isExpired = function () {
+    return Date.now() - this.createdAt > Number(process.env.OTP_EXPIRATION);
+  }
+
+
 // create new OTP 
 
 exports.addOTP = (obj) => OTPModel.create(obj);
